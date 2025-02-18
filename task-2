@@ -1,0 +1,48 @@
+//create a sample code
+import pandas as pd
+import numpy as np
+
+# Sample data: User ratings for movies (rows are users, columns are movies)
+data = {
+    'Movie A': [5, 4, np.nan, 1, 2],
+    'Movie B': [4, np.nan, 3, 5, 1],
+    'Movie C': [2, 3, 4, 1, np.nan],
+    'Movie D': [5, 5, np.nan, 3, 4],
+    'Movie E': [np.nan, 2, 4, 5, 5]
+}
+
+# Create a DataFrame from the data
+df = pd.DataFrame(data)
+
+# Display the data
+df
+//similarity between users
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Fill missing values with 0 for similarity calculation
+df_filled = df.fillna(0)
+
+# Compute similarity between users (rows)
+user_similarity = cosine_similarity(df_filled)
+
+# Convert similarity matrix to DataFrame for better readability
+user_similarity_df = pd.DataFrame(user_similarity, index=df.index, columns=df.index)
+user_similarity_df
+//movie recommendation
+def recommend_movies(user_id, df, user_similarity_df, top_n=2):
+    # Get similar users to the given user
+    similar_users = user_similarity_df[user_id].sort_values(ascending=False).iloc[1:top_n+1].index
+    
+    # Get the movies rated by similar users but not yet rated by the target user
+    recommended_movies = []
+    
+    for user in similar_users:
+        for movie in df.columns:
+            if pd.isna(df.loc[user_id, movie]) and df.loc[user, movie] > 3:  # Rating threshold
+                recommended_movies.append(movie)
+    
+    return list(set(recommended_movies))
+
+# Example: Recommend movies for user 0
+recommendations = recommend_movies(user_id=0, df=df, user_similarity_df=user_similarity_df)
+recommendations
